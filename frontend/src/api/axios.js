@@ -1,6 +1,6 @@
 import axios from "axios";
 const api=axios.create({
-     baseURL: " https://graveyard-reproach-overlaid.ngrok-free.dev/api/v1",
+     baseURL: "https://graveyard-reproach-overlaid.ngrok-free.dev/api/v1",
   headers: {
     "Content-Type": "application/json",
   },

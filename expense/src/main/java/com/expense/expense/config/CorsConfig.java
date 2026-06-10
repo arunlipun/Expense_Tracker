@@ -17,7 +17,7 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowedOrigins(
-                List.of("http://localhost:5173","https://expense-tracker-xi-two-56.vercel.app/")
+                List.of("http://localhost:5173","https://expense-tracker-2ukn6st5y-arunlipuns-projects.vercel.app/")
 
         );
 
