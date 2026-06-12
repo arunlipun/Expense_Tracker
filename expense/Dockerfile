@@ -1,14 +1,25 @@
-# Use official Java 21 image
-FROM eclipse-temurin:21-jdk
+# Stage 1: Build
+FROM eclipse-temurin:21-jdk AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy jar file
-COPY target/*.jar app.jar
+# Copy pom + source
+COPY pom.xml .
+COPY src ./src
+
+# Build jar (skip tests optional for CI/CD)
+RUN ./mvnw clean package -DskipTests || mvn clean package -DskipTests
+
+# Stage 2: Run
+FROM eclipse-temurin:21-jdk
+
+WORKDIR /app
+
+# Copy generated jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080
 
-# Run application
+# Run app
 ENTRYPOINT ["java", "-jar", "app.jar"]
