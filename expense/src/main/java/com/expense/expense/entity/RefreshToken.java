@@ -1,8 +1,8 @@
 package com.expense.expense.entity;
 
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+
 
 import java.time.Instant;
 
@@ -11,13 +11,16 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "refresh_tokens")
+@Entity
+@Table(name = "refresh_tokens")
 public class RefreshToken {
-
-    @Id
-    private String id;
+     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String userId;
+
+    @Column(length = 500, unique = true)
     private String token;
     private Instant expiryDate;
 }

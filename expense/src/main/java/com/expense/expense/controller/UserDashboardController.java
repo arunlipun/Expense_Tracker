@@ -27,7 +27,7 @@ public class UserDashboardController {
 
         UserDashboardResponse response =
                 expenseService.getUserDashboard(
-                        userDetails.getUserId()
+                        String.valueOf(userDetails.getUserId())
                 );
 
         return ResponseEntity.ok(

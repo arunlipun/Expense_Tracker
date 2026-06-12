@@ -1,207 +1,3 @@
-//package com.expense.expense.service.impl;
-//
-//import com.expense.expense.dto.analytics.CategorySummaryResponse;
-//import com.expense.expense.dto.analytics.MonthlySummaryResponse;
-//import com.expense.expense.dto.analytics.RecentTransactionResponse;
-//import com.expense.expense.dto.analytics.UserSummaryResponse;
-//import com.expense.expense.dto.response.AdminDashboardResponse;
-//import com.expense.expense.entity.Expense;
-//import com.expense.expense.entity.User;
-//import com.expense.expense.enums.ReportType;
-//import com.expense.expense.enums.TransactionType;
-//import com.expense.expense.repository.ExpenseRepository;
-//import com.expense.expense.repository.UserRepository;
-//import com.expense.expense.service.AdminDashboardService;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.access.prepost.PreAuthorize;
-//import org.springframework.stereotype.Service;
-//
-//import java.nio.charset.StandardCharsets;
-//import java.time.LocalDate;
-//import java.time.LocalDateTime;
-//import java.time.Month;
-//import java.util.*;
-//import java.util.function.Function;
-//import java.util.stream.Collectors;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class AdminDashboardServiceImpl implements AdminDashboardService {
-//
-//    private final ExpenseRepository expenseRepository;
-//    private final UserRepository userRepository;
-//
-//    @Override
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public AdminDashboardResponse getDashboard() {
-//        List<Expense> expenses = expenseRepository.findByDeletedFalse();
-//        List<User> users = userRepository.findAll();
-//
-//        double totalIncome = expenses.stream()
-//                .filter(e -> e.getType() == TransactionType.INCOME)
-//                .mapToDouble(Expense::getAmount)
-//                .sum();
-//
-//        double totalExpense = expenses.stream()
-//                .filter(e -> e.getType() == TransactionType.EXPENSE)
-//                .mapToDouble(Expense::getAmount)
-//                .sum();
-//
-//        long totalIncomeTransactions = expenses.stream()
-//                .filter(e -> e.getType() == TransactionType.INCOME)
-//                .count();
-//
-//        long totalExpenseTransactions = expenses.stream()
-//                .filter(e -> e.getType() == TransactionType.EXPENSE)
-//                .count();
-//
-//        List<RecentTransactionResponse> recentTransactions = expenses.stream()
-//                .sorted(Comparator.comparing(Expense::getDate).reversed())
-//                .limit(10)
-//                .map(e -> new RecentTransactionResponse(
-//                        e.getId(),
-//                        e.getUserId(),
-//                        e.getTitle(),
-//                        e.getCategory(),
-//                        e.getAmount(),
-//                        e.getType(),
-//                        e.getDate()
-//                ))
-//                .toList();
-//
-//        List<CategorySummaryResponse> categoryWiseExpenses = expenses.stream()
-//                .filter(e -> e.getType() == TransactionType.EXPENSE)
-//                .collect(Collectors.groupingBy(Expense::getCategory))
-//                .entrySet()
-//                .stream()
-//                .map(entry -> new CategorySummaryResponse(
-//                        entry.getKey(),
-//                        entry.getValue().stream().mapToDouble(Expense::getAmount).sum(),
-//                        (long) entry.getValue().size()
-//                ))
-//                .sorted(Comparator.comparing(CategorySummaryResponse::getTotalAmount).reversed())
-//                .toList();
-//
-//        List<MonthlySummaryResponse> monthlyTrend = buildMonthlyTrend(expenses);
-//        List<UserSummaryResponse> userWiseSummary = buildUserWiseSummary(expenses, users);
-//
-//        return new AdminDashboardResponse(
-//                totalIncome,
-//                totalExpense,
-//                totalIncome - totalExpense,
-//                (long) expenses.size(),
-//                totalIncomeTransactions,
-//                totalExpenseTransactions,
-//                recentTransactions,
-//                categoryWiseExpenses,
-//                monthlyTrend,
-//                userWiseSummary
-//        );
-//    }
-//
-//    @Override
-//    @PreAuthorize("hasRole('ADMIN')")
-//    public byte[] downloadReport(ReportType reportType) {
-//        LocalDateTime now = LocalDateTime.now();
-//        LocalDateTime startDate;
-//
-//        switch (reportType) {
-//            case WEEKLY -> startDate = now.minusWeeks(1);
-//            case MONTHLY -> startDate = now.minusMonths(1);
-//            case YEARLY -> startDate = now.minusYears(1);
-//            default -> throw new IllegalArgumentException("Invalid report type");
-//        }
-//
-//        List<Expense> expenses = expenseRepository.findByDateBetweenAndDeletedFalse(startDate, now);
-//
-//        StringBuilder csv = new StringBuilder();
-//        csv.append("Id,UserId,Title,Category,Amount,Type,Date\n");
-//
-//        for (Expense expense : expenses) {
-//            csv.append(safe(expense.getId())).append(",")
-//                    .append(safe(expense.getUserId())).append(",")
-//                    .append(safe(expense.getTitle())).append(",")
-//                    .append(safe(expense.getCategory())).append(",")
-//                    .append(expense.getAmount()).append(",")
-//                    .append(expense.getType()).append(",")
-//                    .append(expense.getDate()).append("\n");
-//        }
-//
-//        return csv.toString().getBytes(StandardCharsets.UTF_8);
-//    }
-//
-//    private List<MonthlySummaryResponse> buildMonthlyTrend(List<Expense> expenses) {
-//        Map<String, List<Expense>> monthlyMap = expenses.stream()
-//                .collect(Collectors.groupingBy(e -> e.getDate().getYear() + "-" + String.format("%02d", e.getDate().getMonthValue())));
-//
-//        return monthlyMap.entrySet().stream()
-//                .map(entry -> {
-//                    double income = entry.getValue().stream()
-//                            .filter(e -> e.getType() == TransactionType.INCOME)
-//                            .mapToDouble(Expense::getAmount)
-//                            .sum();
-//
-//                    double expense = entry.getValue().stream()
-//                            .filter(e -> e.getType() == TransactionType.EXPENSE)
-//                            .mapToDouble(Expense::getAmount)
-//                            .sum();
-//
-//                    return new MonthlySummaryResponse(
-//                            entry.getKey(),
-//                            income,
-//                            expense,
-//                            income - expense
-//                    );
-//                })
-//                .sorted(Comparator.comparing(MonthlySummaryResponse::getMonth))
-//                .toList();
-//    }
-//
-//    private List<UserSummaryResponse> buildUserWiseSummary(List<Expense> expenses, List<User> users) {
-//        Map<String, User> userMap = users.stream()
-//                .collect(Collectors.toMap(User::getId, Function.identity()));
-//
-//        Map<String, List<Expense>> grouped = expenses.stream()
-//                .collect(Collectors.groupingBy(Expense::getUserId));
-//
-//        return grouped.entrySet().stream()
-//                .map(entry -> {
-//                    String userId = entry.getKey();
-//                    User user = userMap.get(userId);
-//
-//                    double income = entry.getValue().stream()
-//                            .filter(e -> e.getType() == TransactionType.INCOME)
-//                            .mapToDouble(Expense::getAmount)
-//                            .sum();
-//
-//                    double expense = entry.getValue().stream()
-//                            .filter(e -> e.getType() == TransactionType.EXPENSE)
-//                            .mapToDouble(Expense::getAmount)
-//                            .sum();
-//
-//                    return new UserSummaryResponse(
-//                            userId,
-//                            user != null ? user.getName() : "Unknown",
-//                            user != null ? user.getEmail() : "N/A",
-//                            income,
-//                            expense,
-//                            income - expense,
-//                            (long) entry.getValue().size()
-//                    );
-//                })
-//                .sorted(Comparator.comparing(UserSummaryResponse::getTotalTransactions).reversed())
-//                .toList();
-//    }
-//
-//    private String safe(String value) {
-//        if (value == null) return "";
-//        return "\"" + value.replace("\"", "\"\"") + "\"";
-//    }
-//}
-
-
-
-//==========================================
 
 package com.expense.expense.service.impl;
 
@@ -328,7 +124,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         csv.append("Id,UserId,Title,Category,Amount,Type,Date\n");
 
         for (Expense expense : expenses) {
-            csv.append(safe(expense.getId())).append(",")
+            csv.append(safe(String.valueOf(expense.getId()))).append(",")
                     .append(safe(expense.getUserId())).append(",")
                     .append(safe(expense.getTitle())).append(",")
                     .append(safe(expense.getCategory())).append(",")
@@ -371,7 +167,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     }
 
     private List<UserSummaryResponse> buildUserWiseSummary(List<Expense> expenses, List<User> users) {
-        Map<String, User> userMap = users.stream()
+        Map<Long, User> userMap = users.stream()
                 .filter(user -> user.getId() != null)
                 .collect(Collectors.toMap(
                         User::getId,
@@ -386,7 +182,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
         return grouped.entrySet().stream()
                 .map(entry -> {
                     String userId = entry.getKey();
-                    User user = userMap.get(userId);
+                    User user = userMap.get(Long.valueOf(userId));
 
                     double income = entry.getValue().stream()
                             .filter(e -> e.getType() == TransactionType.INCOME)

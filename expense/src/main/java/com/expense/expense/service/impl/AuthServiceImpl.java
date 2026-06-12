@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -57,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         User savedUser=userRepository.save(user);
         CustomUserDetails userDetails = new CustomUserDetails(savedUser);
         String accessToken=jwtService.generateAccessToken(userDetails);
-        RefreshToken refreshToken=refreshTokenService.createRefreshToken(savedUser.getId());
+        RefreshToken refreshToken=refreshTokenService.createRefreshToken(String.valueOf(savedUser.getId()));
         return buildAuthResponse(savedUser,accessToken,refreshToken.getToken());
     }
 
@@ -73,7 +74,8 @@ public class AuthServiceImpl implements AuthService {
             );
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken=jwtService.generateAccessToken(userDetails);
-            RefreshToken refreshToken=refreshTokenService.createRefreshToken(userDetails.getUserId());
+            RefreshToken refreshToken=refreshTokenService.createRefreshToken( String.valueOf(userDetails.getUserId())
+            );
             return buildAuthResponse(userDetails.getUser(), accessToken, refreshToken.getToken());
 
         }catch (BadRequestException ex){
@@ -89,7 +91,9 @@ public class AuthServiceImpl implements AuthService {
     public TokenRefreshResponse refreshToken(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenService.verifyExpiration(request.getRefreshToken());
 
-        User user = userRepository.findById(refreshToken.getUserId())
+        User user = userRepository.findById(
+                        Long.valueOf(refreshToken.getUserId())
+                )
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         String accessToken = jwtService.generateAccessToken(new CustomUserDetails(user));
@@ -103,6 +107,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public void logout(LogoutRequest request) {
         refreshTokenService.deleteByUserId(request.getUserId());
     }
@@ -113,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .tokenType("Bearer")
                 .expiresIn(accessTokenExpiration / 1000)
-                .userId(user.getId())
+                .userId(String.valueOf(user.getId()))
                 .name(user.getName())
                 .email(user.getEmail())
                 .roles(user.getRoles().stream().map(Enum::name).collect(Collectors.toSet()))

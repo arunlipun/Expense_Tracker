@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecentTransactionResponse {
-    private String id;
+    private Long id;
     private String userId;
     private String title;
     private String category;

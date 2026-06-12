@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -19,6 +20,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private long refreshTokenDurationMs;
 
     @Override
+    @Transactional
     public RefreshToken createRefreshToken(String userId){
         refreshTokenRepository.deleteByUserId(userId);
         RefreshToken refreshToken = RefreshToken.builder()

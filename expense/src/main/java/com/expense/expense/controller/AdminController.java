@@ -35,13 +35,13 @@ public class AdminController {
     }
 
     @GetMapping("/expenses/{id}")
-    public ResponseEntity<ApiResponse<ExpenseResponse>> getExpenseById(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<ExpenseResponse>> getExpenseById(@PathVariable Long  id) {
         ExpenseResponse response = expenseService.getAnyExpenseByIdForAdmin(id);
         return ResponseEntity.ok(ApiResponse.success("Expense fetched successfully", response));
     }
 
     @DeleteMapping("/expenses/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteExpenseByAdmin(@PathVariable String id) {
+    public ResponseEntity<ApiResponse<Void>> deleteExpenseByAdmin(@PathVariable Long id) {
         expenseService.deleteAnyExpenseByAdmin(id);
         return ResponseEntity.ok(ApiResponse.success("Expense deleted successfully", null));
     }

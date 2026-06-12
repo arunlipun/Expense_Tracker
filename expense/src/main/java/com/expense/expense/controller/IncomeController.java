@@ -25,7 +25,7 @@ public class IncomeController {
             @Valid @RequestBody ExpenseCreateRequest request
     ) {
         request.setType(TransactionType.INCOME);
-        ExpenseResponse response = expenseService.createExpense(userDetails.getUserId(), request);
+        ExpenseResponse response = expenseService.createExpense(String.valueOf(userDetails.getUserId()), request);
         return ResponseEntity.ok(ApiResponse.success("Income created successfully", response));
     }
 
@@ -33,16 +33,16 @@ public class IncomeController {
     public ResponseEntity<ApiResponse<java.util.List<ExpenseResponse>>> getMyIncome(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        java.util.List<ExpenseResponse> response = expenseService.getMyIncome(userDetails.getUserId());
+        java.util.List<ExpenseResponse> response = expenseService.getMyIncome(String.valueOf(userDetails.getUserId()));
         return ResponseEntity.ok(ApiResponse.success("Income fetched successfully", response));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ExpenseResponse>> getMyIncomeById(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable String id
+            @PathVariable Long id
     ) {
-        ExpenseResponse response = expenseService.getMyIncomeById(userDetails.getUserId(), id);
+        ExpenseResponse response = expenseService.getMyIncomeById(String.valueOf(userDetails.getUserId()), id);
         return ResponseEntity.ok(ApiResponse.success("Income fetched successfully", response));
     }
 }

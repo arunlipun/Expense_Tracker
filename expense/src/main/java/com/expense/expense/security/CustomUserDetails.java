@@ -2,6 +2,7 @@ package com.expense.expense.security;
 
 import com.expense.expense.entity.User;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +11,9 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@Getter
 public class CustomUserDetails implements UserDetails {
+
     private final User user;
 
     @Override
@@ -31,16 +34,12 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    public String getUserId() {
+    public Long getUserId() {
         return user.getId();
     }
 
     public String getName() {
         return user.getName();
-    }
-
-    public User getUser() {
-        return user;
     }
 
     @Override

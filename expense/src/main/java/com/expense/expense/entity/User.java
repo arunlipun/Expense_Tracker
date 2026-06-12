@@ -3,9 +3,10 @@ package com.expense.expense.entity;
 
 
 import com.expense.expense.enums.Role;
+import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+
+
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -16,20 +17,26 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "users")
+@Entity
+@Table(name = "users")
 public class User {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String name;
+
+    @Column(unique = true)
     private String email;
+
     private String password;
 
-    @Builder.Default
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
 
-    @Builder.Default
+
     private Boolean enabled = true;
 
     private LocalDateTime createdAt;

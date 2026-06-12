@@ -61,7 +61,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ExpenseResponse getMyExpenseById(String userId, String expenseId) {
+    public ExpenseResponse getMyExpenseById(String userId, Long expenseId) {
         Expense expense = expenseRepository.findByIdAndUserIdAndDeletedFalse(expenseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
         return expenseMapper.toResponse(expense);
@@ -69,7 +69,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ExpenseResponse updateMyExpense(String userId, String expenseId, ExpenseUpdateRequest request) {
+    public ExpenseResponse updateMyExpense(String userId, Long expenseId, ExpenseUpdateRequest request) {
         Expense expense = expenseRepository.findByIdAndUserIdAndDeletedFalse(expenseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
 
@@ -86,7 +86,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public void deleteMyExpense(String userId, String expenseId) {
+    public void deleteMyExpense(String userId, Long expenseId) {
         Expense expense = expenseRepository.findByIdAndUserIdAndDeletedFalse(expenseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
 
@@ -106,7 +106,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public ExpenseResponse getAnyExpenseByIdForAdmin(String expenseId) {
+    public ExpenseResponse getAnyExpenseByIdForAdmin(Long expenseId) {
         Expense expense = expenseRepository.findByIdAndDeletedFalse(expenseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
         return expenseMapper.toResponse(expense);
@@ -114,7 +114,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteAnyExpenseByAdmin(String expenseId) {
+    public void deleteAnyExpenseByAdmin(Long expenseId) {
         Expense expense = expenseRepository.findByIdAndDeletedFalse(expenseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
 
@@ -234,7 +234,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     @Override
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ExpenseResponse getMyIncomeById(String userId, String expenseId) {
+    public ExpenseResponse getMyIncomeById(String userId, Long expenseId) {
         Expense expense = expenseRepository.findByIdAndUserIdAndDeletedFalse(expenseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Income not found"));
 
@@ -333,7 +333,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 })
                 .toList();
 
-        Map<String, User> userMap = allUsers.stream()
+        Map<Long, User> userMap = allUsers.stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
 
         List<UserSummaryResponse> userWiseSummary = allRecords.stream()
@@ -343,7 +343,7 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .map(entry -> {
                     String userId = entry.getKey();
                     List<Expense> userExpenses = entry.getValue();
-                    User user = userMap.get(userId);
+                    User user = userMap.get(Long.valueOf(userId));
 
                     double userIncome = userExpenses.stream()
                             .filter(expense -> expense.getType() == TransactionType.INCOME)

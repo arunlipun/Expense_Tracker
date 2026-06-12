@@ -27,7 +27,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${app.jwt.access-expiration}")
     private long accessTokenExpiration;
-@Override
+    @Override
     public String generateAccessToken(UserDetails userDetails) {
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         Map<String , Object> claims = new HashMap<>();

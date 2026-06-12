@@ -15,7 +15,7 @@ public class StartupLogger implements CommandLineRunner {
     @Override
     public void run(String... args) {
         log.info("Expense Tracker application started successfully.");
-        log.info("MongoDB connection initialized.");
+        log.info("SQL connection initialized.");
 
     }
 }
