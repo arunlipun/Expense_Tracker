@@ -228,8 +228,10 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                             expense,
                             income - expense,
                             (long) entry.getValue().size(),
-                            user != null ? user.getPremiumUser() : false,
-                            user != null ? user.getPlanType().name() : "FREE"
+                            user != null && Boolean.TRUE.equals(user.getPremiumUser()),
+                            user != null && user.getPlanType() != null
+                                    ? user.getPlanType().name()
+                                    : "FREE"
                     );
                 })
                 .sorted(Comparator.comparing(UserSummaryResponse::getTotalTransactions).reversed())
