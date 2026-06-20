@@ -16,6 +16,7 @@ import com.expense.expense.exception.ResourceNotFoundException;
 import com.expense.expense.mapper.ExpenseMapper;
 import com.expense.expense.repository.ExpenseRepository;
 import com.expense.expense.repository.UserRepository;
+import com.expense.expense.service.AiRecommendationService;
 import com.expense.expense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,6 +38,7 @@ public class ExpenseServiceImpl implements ExpenseService {
     private final ExpenseRepository expenseRepository;
     private final ExpenseMapper expenseMapper;
     private final UserRepository userRepository;
+    private final AiRecommendationService aiRecommendationService;
 
     @Override
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
@@ -47,7 +49,12 @@ public class ExpenseServiceImpl implements ExpenseService {
         expense.setUpdatedAt(LocalDateTime.now());
         expense.setDeleted(false);
 
-        return expenseMapper.toResponse(expenseRepository.save(expense));
+        Expense savedExpense = expenseRepository.save(expense);
+
+        // 🔥 CALL AI AFTER SAVE
+        aiRecommendationService.checkAndRecommend(userId);
+
+        return expenseMapper.toResponse(savedExpense);
     }
 
     @Override
@@ -128,6 +135,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     public UserDashboardResponse getUserDashboard(String userId) {
 
+        User user = userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         List<Expense> expenses =
                 expenseRepository.findByUserIdAndDeletedFalse(userId);
 
@@ -140,6 +150,14 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .filter(e -> e.getType() == TransactionType.EXPENSE)
                 .mapToDouble(Expense::getAmount)
                 .sum();
+
+
+        // ✅ ADD HERE
+        double expensePercentage = 0.0;
+
+        if (totalIncome > 0) {
+            expensePercentage = (totalExpense / totalIncome) * 100;
+        }
 
         long totalIncomeTransactions = expenses.stream()
                 .filter(e -> e.getType() == TransactionType.INCOME)
@@ -210,12 +228,15 @@ public class ExpenseServiceImpl implements ExpenseService {
         return UserDashboardResponse.builder()
                 .totalIncome(totalIncome)
                 .totalExpense(totalExpense)
+                .expensePercentage(expensePercentage)
                 .balance(totalIncome - totalExpense)
                 .totalTransactions((long) expenses.size())
                 .totalIncomeTransactions(totalIncomeTransactions)
                 .totalExpenseTransactions(totalExpenseTransactions)
                 .recentTransactions(recentTransactions)
                 .categoryWiseExpenses(categoryWiseExpenses)
+                .premiumUser(user.getPremiumUser())
+                .planType(user.getPlanType().name())
                 .build();
     }
 
@@ -362,7 +383,9 @@ public class ExpenseServiceImpl implements ExpenseService {
                             userIncome,
                             userExpense,
                             userIncome - userExpense,
-                            (long) userExpenses.size()
+                            (long) userExpenses.size(),
+                            user != null ? user.getPremiumUser() : false,
+                            user != null ? user.getPlanType().name() : "FREE"
                     );
                 })
                 .sorted(Comparator.comparing(UserSummaryResponse::getTotalTransactions).reversed())

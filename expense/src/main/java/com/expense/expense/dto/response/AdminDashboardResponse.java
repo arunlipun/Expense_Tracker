@@ -26,6 +26,13 @@ public class AdminDashboardResponse {
     private Long totalIncomeRecords;
     private Long totalExpenseRecords;
 
+
+    private Long totalUsers;
+    private Long totalPremiumUsers;
+    private Long totalFreeUsers;
+    private Long monthlyPlanUsers;
+    private Long yearlyPlanUsers;
+
     private List<RecentTransactionResponse> recentTransactions;
     private List<CategorySummaryResponse> categoryWiseExpenses;
     private List<MonthlySummaryResponse> monthlyTrend;

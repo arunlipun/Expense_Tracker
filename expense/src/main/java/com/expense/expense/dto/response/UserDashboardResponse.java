@@ -25,4 +25,7 @@ public class UserDashboardResponse {
     private List<RecentTransactionResponse> recentTransactions;
 
     private List<CategorySummaryResponse> categoryWiseExpenses;
+    private Double expensePercentage;
+    private Boolean premiumUser;
+    private String planType;
 }

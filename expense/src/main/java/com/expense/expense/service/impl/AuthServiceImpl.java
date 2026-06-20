@@ -1,22 +1,19 @@
 package com.expense.expense.service.impl;
 
-import com.expense.expense.dto.request.LoginRequest;
-import com.expense.expense.dto.request.LogoutRequest;
-import com.expense.expense.dto.request.RefreshTokenRequest;
-import com.expense.expense.dto.request.RegisterRequest;
+import com.expense.expense.dto.request.*;
 import com.expense.expense.dto.response.AuthResponse;
 import com.expense.expense.dto.response.TokenRefreshResponse;
+import com.expense.expense.entity.OtpVerification;
 import com.expense.expense.entity.RefreshToken;
 import com.expense.expense.entity.User;
 import com.expense.expense.enums.Role;
 import com.expense.expense.exception.BadRequestException;
 import com.expense.expense.exception.DuplicateResourceException;
 import com.expense.expense.exception.UnauthorizedException;
+import com.expense.expense.repository.OtpVerificationRepository;
 import com.expense.expense.repository.UserRepository;
 import com.expense.expense.security.CustomUserDetails;
-import com.expense.expense.service.AuthService;
-import com.expense.expense.service.JwtService;
-import com.expense.expense.service.RefreshTokenService;
+import com.expense.expense.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,6 +37,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Value("${app.jwt.access-expiration}")
     private long accessTokenExpiration;
+    private final OtpService otpService;
+    private final OtpVerificationRepository otpVerificationRepository;
+    private final EmailService emailService;
 
     @Override
     public AuthResponse register(RegisterRequest request){
@@ -50,22 +50,130 @@ public class AuthServiceImpl implements AuthService {
                 .name(request.getName())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .email(request.getEmail().toLowerCase().trim())
-                .enabled(true)
+                .enabled(false)
+//                .enabled(true)
                 .roles(Set.of(Role.ROLE_USER))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
         User savedUser=userRepository.save(user);
-        CustomUserDetails userDetails = new CustomUserDetails(savedUser);
-        String accessToken=jwtService.generateAccessToken(userDetails);
-        RefreshToken refreshToken=refreshTokenService.createRefreshToken(String.valueOf(savedUser.getId()));
-        return buildAuthResponse(savedUser,accessToken,refreshToken.getToken());
+        String otp= otpService.generateOtp();
+        System.out.println("Generated OTP = " + otp);
+
+
+        otpVerificationRepository.deleteByEmail(savedUser.getEmail());
+
+        OtpVerification otpVerification = OtpVerification.builder()
+                .email(savedUser.getEmail())
+                .otp(otp)
+                .expiryTime(LocalDateTime.now().plusMinutes(5))
+                .verified(false)
+                .build();
+
+        otpVerificationRepository.save(otpVerification);
+
+        emailService.sendOtpEmail(
+                savedUser.getEmail(),
+                otp
+        );
+
+        return AuthResponse.builder()
+                .userId(String.valueOf(savedUser.getId()))
+                .name(savedUser.getName())
+                .email(savedUser.getEmail())
+                .roles(savedUser.getRoles()
+                        .stream()
+                        .map(Enum::name)
+                        .collect(Collectors.toSet()))
+                .build();
+
+//        CustomUserDetails userDetails = new CustomUserDetails(savedUser);
+//        String accessToken=jwtService.generateAccessToken(userDetails);
+//        RefreshToken refreshToken=refreshTokenService.createRefreshToken(String.valueOf(savedUser.getId()));
+//        return buildAuthResponse(savedUser,accessToken,refreshToken.getToken());
+
+
     }
+    // verify otp ..
+    @Override
+    public AuthResponse verifyOtp(VerifyOtpRequest request) {
+
+        OtpVerification otpVerification =
+                otpVerificationRepository.findTopByEmailOrderByIdDesc(
+                        request.getEmail().toLowerCase().trim()
+                ).orElseThrow(() ->
+                        new BadRequestException("OTP not found"));
+
+        if (Boolean.TRUE.equals(otpVerification.getVerified())) {
+            throw new BadRequestException("OTP already verified");
+        }
+
+        if (LocalDateTime.now().isAfter(
+                otpVerification.getExpiryTime())) {
+
+            throw new BadRequestException("OTP expired");
+        }
+
+        if (!otpVerification.getOtp().equals(request.getOtp())) {
+            throw new BadRequestException("Invalid OTP");
+        }
+
+        User user = userRepository.findByEmail(
+                request.getEmail().toLowerCase().trim()
+        ).orElseThrow(() ->
+                new BadRequestException("User not found"));
+
+        user.setEnabled(true);
+        user.setUpdatedAt(LocalDateTime.now());
+
+        userRepository.save(user);
+
+        otpVerification.setVerified(true);
+        otpVerificationRepository.save(otpVerification);
+
+        CustomUserDetails userDetails =
+                new CustomUserDetails(user);
+
+        String accessToken =
+                jwtService.generateAccessToken(userDetails);
+
+        RefreshToken refreshToken =
+                refreshTokenService.createRefreshToken(
+                        String.valueOf(user.getId()));
+
+        return buildAuthResponse(
+                user,
+                accessToken,
+                refreshToken.getToken()
+        );
+    }
+
+    @Override
+    public void resendOtp(String email) {
+
+        OtpVerification existingOtp =
+                otpVerificationRepository.findTopByEmailOrderByIdDesc(email)
+                        .orElseThrow(() ->
+                                new BadRequestException("OTP record not found"));
+
+        String otp = otpService.generateOtp();
+
+        existingOtp.setOtp(otp);
+        existingOtp.setExpiryTime(LocalDateTime.now().plusMinutes(5));
+        existingOtp.setVerified(false);
+
+        otpVerificationRepository.save(existingOtp);
+
+        emailService.sendOtpEmail(email, otp);
+    }
+
+
 
 
     @Override
     public AuthResponse login(LoginRequest request){
         try{
+            long start = System.currentTimeMillis();
             Authentication authentication=authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             request.getEmail().toLowerCase().trim(),
@@ -75,6 +183,14 @@ public class AuthServiceImpl implements AuthService {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String accessToken=jwtService.generateAccessToken(userDetails);
             RefreshToken refreshToken=refreshTokenService.createRefreshToken( String.valueOf(userDetails.getUserId())
+            );
+
+            long end = System.currentTimeMillis();
+
+            System.out.println(
+                    "LOGIN PROCESSING TIME = "
+                            + (end - start)
+                            + " ms"
             );
             return buildAuthResponse(userDetails.getUser(), accessToken, refreshToken.getToken());
 

@@ -2,6 +2,7 @@ package com.expense.expense.entity;
 
 
 
+import com.expense.expense.enums.PlanType;
 import com.expense.expense.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +39,13 @@ public class User {
 
 
     private Boolean enabled = true;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private PlanType planType = PlanType.FREE;
+
+    @Builder.Default
+    private Boolean premiumUser = false;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

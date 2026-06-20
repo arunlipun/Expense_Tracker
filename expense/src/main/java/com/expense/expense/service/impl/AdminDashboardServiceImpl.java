@@ -8,6 +8,7 @@ import com.expense.expense.dto.analytics.UserSummaryResponse;
 import com.expense.expense.dto.response.AdminDashboardResponse;
 import com.expense.expense.entity.Expense;
 import com.expense.expense.entity.User;
+import com.expense.expense.enums.PlanType;
 import com.expense.expense.enums.ReportType;
 import com.expense.expense.enums.TransactionType;
 import com.expense.expense.repository.ExpenseRepository;
@@ -35,6 +36,26 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     public AdminDashboardResponse getDashboard() {
         List<Expense> expenses = expenseRepository.findByDeletedFalse();
         List<User> users = userRepository.findAll();
+
+
+        long totalUsers = users.size();
+
+        long totalPremiumUsers = users.stream()
+                .filter(user -> Boolean.TRUE.equals(user.getPremiumUser()))
+                .count();
+
+        long totalFreeUsers = users.stream()
+                .filter(user -> !Boolean.TRUE.equals(user.getPremiumUser()))
+                .count();
+
+        long monthlyPlanUsers = users.stream()
+                .filter(user -> user.getPlanType() == PlanType.MONTHLY)
+                .count();
+
+        long yearlyPlanUsers = users.stream()
+                .filter(user -> user.getPlanType() == PlanType.YEARLY)
+                .count();
+
 
         double totalIncome = expenses.stream()
                 .filter(e -> e.getType() == TransactionType.INCOME)
@@ -98,6 +119,11 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                 (long) expenses.size(),
                 totalIncomeTransactions,
                 totalExpenseTransactions,
+                totalUsers,
+                totalPremiumUsers,
+                totalFreeUsers,
+                monthlyPlanUsers,
+                yearlyPlanUsers,
                 recentTransactions,
                 categoryWiseExpenses,
                 monthlyTrend,
@@ -201,7 +227,9 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                             income,
                             expense,
                             income - expense,
-                            (long) entry.getValue().size()
+                            (long) entry.getValue().size(),
+                            user != null ? user.getPremiumUser() : false,
+                            user != null ? user.getPlanType().name() : "FREE"
                     );
                 })
                 .sorted(Comparator.comparing(UserSummaryResponse::getTotalTransactions).reversed())

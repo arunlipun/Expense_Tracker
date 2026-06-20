@@ -17,4 +17,7 @@ public class UserSummaryResponse {
     private Double totalExpense;
     private Double netBalance;
     private Long totalTransactions;
+
+    private Boolean premiumUser;
+    private String planType;
 }

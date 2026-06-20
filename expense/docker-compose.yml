@@ -14,4 +14,10 @@ services:
 
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
+
+      MAIL_USERNAME: mohapatraarun64@gmail.com
+      MAIL_PASSWORD: cepkxxmmzxzrujzg
+
+      RAZORPAY_KEY: rzp_test_SWgcF87G8agcf8
+      RAZORPAY_SECRET: nvm2b8J7zUbKrXvLDA9pH3cf
     restart: always

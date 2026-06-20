@@ -1,9 +1,6 @@
 package com.expense.expense.controller;
 
-import com.expense.expense.dto.request.LoginRequest;
-import com.expense.expense.dto.request.LogoutRequest;
-import com.expense.expense.dto.request.RefreshTokenRequest;
-import com.expense.expense.dto.request.RegisterRequest;
+import com.expense.expense.dto.request.*;
 import com.expense.expense.dto.response.ApiResponse;
 import com.expense.expense.dto.response.AuthResponse;
 import com.expense.expense.dto.response.TokenRefreshResponse;
@@ -25,13 +22,35 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED.value(), "User registered successfully", response));
+                .body(ApiResponse.success(HttpStatus.CREATED.value(), "OTP sent successfully to your email. Please verify your account.",
+                        null));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        AuthResponse response = authService.verifyOtp(request);
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK.value(),
+                        "OTP verified successfully", response
+                )
+        );
+    }
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ApiResponse<Void>> resendOtp(@Valid @RequestBody ResendOtpRequest request) {
+        authService.resendOtp(
+                request.getEmail().toLowerCase().trim());
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(),
+                        "OTP sent successfully",
+                        null
+                )
+        );
     }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Login successful", response));
+
     }
 
     @PostMapping("/refresh")
