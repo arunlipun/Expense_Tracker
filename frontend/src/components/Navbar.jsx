@@ -7,6 +7,8 @@ import { toast } from 'react-toastify';
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const isPremium =
+  localStorage.getItem("isPremium") === "true";
 
 const handleLogout = () => {
 
@@ -14,7 +16,13 @@ const handleLogout = () => {
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("roles");
   localStorage.removeItem("userId");
+
+localStorage.removeItem("premiumUser");
+localStorage.removeItem("premiumPlan");
+localStorage.removeItem("premiumActivatedAt");
+
   toast.success("User Logout Successfully");
+  
 
   navigate("/");
 };
@@ -24,6 +32,14 @@ const handleLogout = () => {
       name: "Dashboard",
       path: "/dashboard",
     },
+     ...(isPremium
+    ? [
+        {
+          name: "Premium",
+          path: "/premium",
+        },
+      ]
+    : []),
     {
       name: "Add Expense",
       path: "/add-expense",
@@ -68,12 +84,12 @@ const handleLogout = () => {
               </NavLink>
             ))}
 
-            <button
+            {/* <button
   onClick={handleLogout}
   className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
 >
   Logout
-</button>
+</button> */}
           </div>
 
           {/* Mobile Button */}
@@ -98,6 +114,12 @@ const handleLogout = () => {
                 {link.name}
               </NavLink>
             ))}
+            <button
+  onClick={handleLogout}
+  className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+>
+  Logout
+</button>
           </div>
         )}
         

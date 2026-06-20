@@ -16,6 +16,8 @@ import IncomeList from "../pages/user/IncomeList";
 import AllExpenses from "../pages/admin/AllExpenses";
 import UserSummary from "../pages/admin/UserSummary";
 import Reports from "../pages/admin/Reports";
+import VerifyOtp from "../pages/public/VerifyOtp";
+import PremiumDashboard from "../pages/premium/PremiumDashboard";
 
 const AppRoutes = () => {
   return (
@@ -25,9 +27,11 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       <Route path="/register" element={<Register />} />
+      <Route path="/verify-otp" element={<VerifyOtp />} />
 
       <Route element={<UserRoute />}>
         <Route element={<MainLayout />}>
+          <Route path="/premium" element={<PremiumDashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/add-expense" element={<AddExpense />} />
 

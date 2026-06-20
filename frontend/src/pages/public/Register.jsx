@@ -91,20 +91,41 @@ const Register = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true);
+  //   try {
+  //     await registerUser(formData);
+  //     toast.success("Account created — sign in to continue");
+  //     navigate("/login");
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error("Registration failed");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await registerUser(formData);
-      toast.success("Account created — sign in to continue");
-      navigate("/login");
-    } catch (error) {
-      console.error(error);
-      toast.error("Registration failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    await registerUser(formData);
+
+    toast.success("OTP sent to your email");
+
+    navigate("/verify-otp", {
+      state: { email: formData.email }
+    });
+
+  } catch (error) {
+    console.error(error);
+    toast.error("Registration failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div style={{

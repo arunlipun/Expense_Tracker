@@ -80,14 +80,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+     const startTime = performance.now();
     try {
       const response = await loginUser(formData);
+       const endTime = performance.now();
+
+    console.log(
+      `Login API Time: ${(endTime - startTime).toFixed(2)} ms`
+    );
       const data = response.data.data;
+      
+
+
+     
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("roles", JSON.stringify(data.roles));
       localStorage.setItem("userId", data.userId);
+
+      
 
       if (data.roles.includes("ROLE_ADMIN")) {
         navigate("/admin/dashboard");
@@ -95,6 +107,7 @@ const Login = () => {
       } else {
         toast.success("User Login Successful");
         navigate("/dashboard");
+        localStorage.getItem("premiumUser")
       }
     } catch (error) {
       console.log(error);

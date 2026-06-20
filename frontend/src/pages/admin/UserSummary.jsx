@@ -122,7 +122,8 @@ const UserSummary = () => {
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
               <thead>
                 <tr style={{ background: "#f8fafc" }}>
-                  {["User", "Email", "Income", "Expense", "Net Balance", "Transactions"].map(h => (
+                  {["User", "Email", "Income", "Expense", "Net Balance", "Transactions", "Subscription",
+  "Plan"].map(h => (
                     <th key={h} style={{
                       padding: "12px 16px", textAlign: "left",
                       fontSize: 11, fontWeight: 700,
@@ -165,6 +166,45 @@ const UserSummary = () => {
                         {user.totalTransactions}
                       </span>
                     </td>
+                    <td
+  style={{
+    padding: "14px 16px",
+    borderBottom: "1px solid #f1f5f9",
+  }}
+>
+  <span
+    style={{
+      background: user.premiumUser ? "#dcfce7" : "#fee2e2",
+      color: user.premiumUser ? "#16a34a" : "#dc2626",
+      padding: "4px 10px",
+      borderRadius: "20px",
+      fontSize: "12px",
+      fontWeight: "700",
+    }}
+  >
+    {user.premiumUser ? "Premium" : "Free"}
+  </span>
+</td>
+
+<td
+  style={{
+    padding: "14px 16px",
+    borderBottom: "1px solid #f1f5f9",
+  }}
+>
+  <span
+    style={{
+      background: "#eff6ff",
+      color: "#2563eb",
+      padding: "4px 10px",
+      borderRadius: "20px",
+      fontSize: "12px",
+      fontWeight: "700",
+    }}
+  >
+    {user.planType}
+  </span>
+</td>
                   </tr>
                 ))}
               </tbody>
