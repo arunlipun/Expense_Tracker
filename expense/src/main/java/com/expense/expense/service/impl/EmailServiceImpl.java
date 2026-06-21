@@ -18,6 +18,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendOtpEmail(String toEmail, String otp) {
+        System.out.println("FROM EMAIL = " + fromEmail);
+        System.out.println("TO EMAIL = " + toEmail);
 
         SimpleMailMessage message = new SimpleMailMessage();
 
@@ -32,5 +34,6 @@ public class EmailServiceImpl implements EmailService {
         );
 
         mailSender.send(message);
+        System.out.println("EMAIL SENT SUCCESSFULLY");
     }
 }
