@@ -42,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
     @Override
+    @Transactional
     public AuthResponse register(RegisterRequest request){
         if(userRepository.existsByEmail(request.getEmail())){
             throw new DuplicateResourceException("Email already exists");
