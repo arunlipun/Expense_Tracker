@@ -111,13 +111,16 @@ const Register = () => {
   setLoading(true);
 
   try {
-    await registerUser(formData);
+    const response = await registerUser(formData);
 
     toast.success("OTP sent to your email");
+    toast.success(`OTP: ${response.data.data.otp}`);
 
     navigate("/verify-otp", {
       state: { email: formData.email }
+      
     });
+    
 
   } catch (error) {
     console.error(error);
