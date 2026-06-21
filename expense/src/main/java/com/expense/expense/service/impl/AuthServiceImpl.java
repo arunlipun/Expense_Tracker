@@ -87,6 +87,7 @@ public class AuthServiceImpl implements AuthService {
                 .userId(String.valueOf(savedUser.getId()))
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
+                .otp(otp)
                 .roles(savedUser.getRoles()
                         .stream()
                         .map(Enum::name)
