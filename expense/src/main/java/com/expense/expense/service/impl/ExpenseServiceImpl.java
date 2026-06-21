@@ -235,8 +235,12 @@ public class ExpenseServiceImpl implements ExpenseService {
                 .totalExpenseTransactions(totalExpenseTransactions)
                 .recentTransactions(recentTransactions)
                 .categoryWiseExpenses(categoryWiseExpenses)
-                .premiumUser(user.getPremiumUser())
-                .planType(user.getPlanType().name())
+                .premiumUser(Boolean.TRUE.equals(user.getPremiumUser()))
+                .planType(
+                        user.getPlanType() != null
+                                ? user.getPlanType().name()
+                                : "FREE"
+                )
                 .build();
     }
 
