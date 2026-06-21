@@ -23,7 +23,8 @@ public class AuthController {
         AuthResponse response = authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(HttpStatus.CREATED.value(), "OTP sent successfully to your email. Please verify your account.",
-                        null));
+                        response));
+
     }
 
     @PostMapping("/verify-otp")
