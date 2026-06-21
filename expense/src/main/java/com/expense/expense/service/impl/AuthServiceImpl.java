@@ -52,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(request.getEmail().toLowerCase().trim())
                 .enabled(false)
 //                .enabled(true)
+
                 .roles(Set.of(Role.ROLE_USER))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -72,10 +73,14 @@ public class AuthServiceImpl implements AuthService {
 
         otpVerificationRepository.save(otpVerification);
 
-        emailService.sendOtpEmail(
-                savedUser.getEmail(),
-                otp
-        );
+        try {
+            emailService.sendOtpEmail(
+                    savedUser.getEmail(),
+                    otp
+            );
+        } catch (Exception e) {
+            System.out.println("Email Failed: " + e.getMessage());
+        }
 
         return AuthResponse.builder()
                 .userId(String.valueOf(savedUser.getId()))
