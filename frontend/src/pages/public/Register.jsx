@@ -114,7 +114,8 @@ const Register = () => {
     const response = await registerUser(formData);
 
     toast.success("OTP sent to your email");
-    toast.success(`OTP: ${response.data.data.otp}`);
+    alert(`OTP: ${response.data.data.otp}`);
+    console.log(response.data)
 
     navigate("/verify-otp", {
       state: { email: formData.email }
@@ -124,6 +125,10 @@ const Register = () => {
 
   } catch (error) {
     console.error(error);
+    console.log("FULL ERROR:", error);
+  console.log("RESPONSE:", error?.response);
+  console.log("DATA:", error?.response?.data);
+
     toast.error("Registration failed");
   } finally {
     setLoading(false);
